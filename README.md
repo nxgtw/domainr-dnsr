@@ -12,7 +12,7 @@ This code leans heavily on [Miek Gieben’s](https://github.com/miekg) excellent
 
 ## Install
 
-`go get github.com/domainr/dnsr`
+`go get github.com/nxgtw/domainr-dnsr`
 
 ## Usage
 
@@ -22,6 +22,7 @@ package main
 import (
   "fmt"
   "github.com/domainr/dnsr"
+  "github.com/nxgtw/domainr-dnsr"
 )
 
 func main() {
