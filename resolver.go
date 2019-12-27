@@ -166,11 +166,12 @@ func (r *Resolver) iterateParents(ctx context.Context, qname, qtype string, dept
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			case rrs := <-chanRRs:
-				for _, nrr := range nrrs {
+				// this will return NS record , even if we only query A/AAAA
+				/*for _, nrr := range nrrs {
 					if nrr.Name == qname {
 						rrs = append(rrs, nrr)
 					}
-				}
+				}*/
 				cancel() // stop any other work here before recursing
 				return r.resolveCNAMEs(ctx, qname, qtype, rrs, depth)
 			case err = <-chanErrs:
