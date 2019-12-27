@@ -183,9 +183,9 @@ func (r *Resolver) iterateParents(ctx context.Context, qname, qtype string, dept
 		}
 
 		// NS queries naturally recurse, so stop further iteration
-		if qtype == "NS" {
+		/*if qtype == "NS" {
 			return nil, err
-		}
+		}*/
 	}
 
 	return nil, ErrNoResponse
