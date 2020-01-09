@@ -3,19 +3,20 @@ package dnsr
 import (
 	"context"
 	"errors"
+	"strings"
 	"fmt"
 	"time"
-
 	"github.com/miekg/dns"
 )
 
 // DNS Resolution configuration.
 var (
-	Timeout             = 2000 * time.Millisecond
-	TypicalResponseTime = 100 * time.Millisecond
+	Timeout             = 5000 * time.Millisecond
+	TypicalResponseTime = 500 * time.Millisecond
 	MaxRecursion        = 10
 	MaxNameservers      = 4
 	MaxIPs              = 2
+	MaxRetryCount       = 5
 )
 
 // Resolver errors.
@@ -192,6 +193,7 @@ func (r *Resolver) iterateParents(ctx context.Context, qname, qtype string, dept
 }
 
 func (r *Resolver) exchange(ctx context.Context, host, qname, qtype string, depth int) (RRs, error) {
+	var retryCount int
 	dtype := dns.StringToType[qtype]
 	if dtype == 0 {
 		dtype = dns.TypeA
@@ -225,14 +227,24 @@ func (r *Resolver) exchange(ctx context.Context, host, qname, qtype string, dept
 			}
 			timeout = dl.Sub(start)
 		}
-
-		client := &dns.Client{Timeout: timeout} // client must finish within remaining timeout
+		client := &dns.Client{Timeout: TypicalResponseTime} // client must finish within remaining timeout
+		retry:
+		if retryCount > 0{
+			client.Net ="tcp"
+			client.Timeout = TypicalResponseTime + TypicalResponseTime
+		}
 		rmsg, dur, err := client.Exchange(qmsg, arr.Value+":53")
 		select {
 		case <-ctx.Done(): // Finished too late
 			logCancellation(host, qmsg, rmsg, depth, dur, timeout)
 			return nil, ctx.Err()
 		default:
+			if err != nil {
+				if strings.Contains(err.Error(),"i/o timeout") && (retryCount < MaxRetryCount) {
+					retryCount++
+					goto retry
+				}
+			}
 			logExchange(host, qmsg, rmsg, depth, dur, timeout, err) // Log hostname instead of IP
 		}
 		if err != nil {
