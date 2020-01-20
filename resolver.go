@@ -70,7 +70,16 @@ func (r *Resolver) Resolve(qname, qtype string) RRs {
 func (r *Resolver) ResolveErr(qname, qtype string) (RRs, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
 	defer cancel()
-	return r.resolve(ctx, toLowerFQDN(qname), qtype, 0)
+	retRRs,retErr :=  r.resolve(ctx, toLowerFQDN(qname), qtype, 0)
+	if retErr == nil {
+            for i,eachRR := range retRRs{
+                if eachRR.Type != qtype {
+                    // remove different type answer
+                    retRRs = append(retRRs[:i], retRRs[i+1:]...)
+		}
+	    }
+	}
+	return retRRs,retErr
 }
 
 // ResolveCtx finds DNS records of type qtype for the domain qname using
