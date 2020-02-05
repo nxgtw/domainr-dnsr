@@ -70,16 +70,7 @@ func (r *Resolver) Resolve(qname, qtype string) RRs {
 func (r *Resolver) ResolveErr(qname, qtype string) (RRs, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), r.timeout)
 	defer cancel()
-	retRRs,retErr :=  r.resolve(ctx, toLowerFQDN(qname), qtype, 0)
-	if retErr == nil {
-            for i,eachRR := range retRRs{
-                if eachRR.Type != qtype {
-                    // remove different type answer
-                    retRRs = append(retRRs[:i], retRRs[i+1:]...)
-		}
-	    }
-	}
-	return retRRs,retErr
+	return r.resolve(ctx, toLowerFQDN(qname), qtype, 0)
 }
 
 // ResolveCtx finds DNS records of type qtype for the domain qname using
@@ -203,6 +194,7 @@ func (r *Resolver) iterateParents(ctx context.Context, qname, qtype string, dept
 
 func (r *Resolver) exchange(ctx context.Context, host, qname, qtype string, depth int) (RRs, error) {
 	var retryCount int
+	var rrs RRs
 	dtype := dns.StringToType[qtype]
 	if dtype == 0 {
 		dtype = dns.TypeA
@@ -282,10 +274,12 @@ func (r *Resolver) exchange(ctx context.Context, host, qname, qtype string, dept
 		} else if rmsg.Rcode != dns.RcodeSuccess {
 			return nil, errors.New(dns.RcodeToString[rmsg.Rcode])
 		}
-
 		// Cache records returned
-		rrs := r.saveDNSRR(host, qname, append(append(rmsg.Answer, rmsg.Ns...), rmsg.Extra...))
-
+		if qtype == "NS" {
+			rrs = r.saveDNSRR(host, qname, append(append(rmsg.Answer, rmsg.Ns...), rmsg.Extra...))
+		}else{
+			rrs = r.saveDNSRR(host, qname, rmsg.Answer)
+		}
 		// Return after first successful network request
 		return rrs, nil
 	}
