@@ -362,7 +362,7 @@ func (r *Resolver) cacheGet(ctx context.Context, qname, qtype string) (RRs, erro
 	}
 	rrs := make(RRs, 0, len(any))
 	for _, rr := range any {
-		if qtype == "" || rr.Type == qtype {
+		if qtype == "" || rr.Type == qtype || (qtype == "A"||qtype == "AAAA") && (rr.Type == "CNAME"){
 			rrs = append(rrs, rr)
 		}
 	}
