@@ -33,6 +33,8 @@ func main() {
 }
 ```
 
+Or construct with `dnsr.NewExpiring()` to expire cache entries based on TTL.
+
 [Documentation](https://godoc.org/github.com/domainr/dnsr)
 
 ## Development

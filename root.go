@@ -12,8 +12,8 @@ var root = `
 ;           on server           FTP.INTERNIC.NET
 ;       -OR-                    RS.INTERNIC.NET
 ; 
-;       last update:     November 14, 2018 
-;       related version of root zone:     2018111402
+;       last update:     January 30, 2020 
+;       related version of root zone:     2020013002
 ; 
 ; FORMERLY NS.INTERNIC.NET 
 ;
